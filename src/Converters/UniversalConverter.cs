@@ -1,0 +1,177 @@
+using SkiaSharp;
+
+namespace OTD.CustomLED.Converters;
+
+public class UniversalConverter
+{
+    private const int WIDTH = 64;
+    private const int HEIGHT = 32 * 4;
+    
+    /// <inheritdoc />
+    public byte[]? Convert(Stream stream, bool doFlip)
+    {
+        // seek to the beginning of the stream
+        stream.Seek(0, SeekOrigin.Begin);
+
+        var res = ConvertCore(stream, doFlip);
+
+        return res;
+    }
+
+    // Use skiasharp to convert any image, which may not only be bitmap, to grayscale
+    private byte[]? ConvertCore(Stream stream, bool doFlip)
+    {
+        using SKImage image = SKImage.FromEncodedData(stream);
+
+        if (image is null)
+        {
+            Console.WriteLine("Failed to decode the image.");
+            return null;
+        }
+
+        if (image.Width <= 0 || image.Height <= 0 || image.Width > WIDTH || image.Height > HEIGHT)
+        {
+            Console.WriteLine($"Invalid image dimensions, must be greater than 0, but under {WIDTH}x{HEIGHT}.");
+            return null;
+        }
+
+        // Convert the image to grayscale
+        SKBitmap result = ConvertToGrayscale(image);
+
+        // flip the image if needed
+        if (doFlip)
+            FlipImage(result);
+
+        // Convert the 8-bit grayscale image to a 4-bit grayscale image
+        byte[] data = ConvertTo4BitGrayscale(result);
+
+        // Dispose the result
+        result.Dispose();
+
+        // Finalize the conversion
+        return FinalizeConversion(data);
+    }
+
+    private SKBitmap ConvertToGrayscale(SKImage image)
+    {
+        // This create an 8-bit grayscale image
+        SKBitmap bitmap = new(image.Width, image.Height, SKColorType.Gray8, SKAlphaType.Premul);
+
+        using SKCanvas canvas = new(bitmap);
+
+        SKHighContrastConfig highContrastConfig = new()
+        {
+            Grayscale = true,
+            InvertStyle = SKHighContrastConfigInvertStyle.NoInvert,
+            Contrast = 0.0f
+        };
+
+        using SKPaint paint = new()
+        {
+            ColorFilter = SKColorFilter.CreateHighContrast(highContrastConfig),
+            IsAntialias = true
+        };
+
+        canvas.DrawImage(image, 0, 0, paint);
+
+        canvas.Flush();
+
+        return bitmap;
+    }
+
+    private byte[] ConvertTo4BitGrayscale(SKBitmap image)
+    {
+        byte[] data = image.Bytes;
+
+        // bitmaps are australian, they are stored upside down
+        // flip for the conversion
+        for (int p = 0; p < data.Length; p +=  image.Width)
+            Array.Reverse(data, p, image.Width);
+
+        Array.Reverse(data);
+
+        int currentByte = 0;
+        byte[] pixeldatahbpp = new byte[4096];
+
+        for (int i = 0; i < data.Length - 1; i += 2)
+        {
+            byte h = (byte)((data[i + 1] >> 4) & 0x0F);
+            byte l = (byte)(data[i] & 0xF0);
+
+            pixeldatahbpp[currentByte++] = (byte)(h | l);
+        }
+
+        return pixeldatahbpp;
+    }
+
+    /// <summary>
+    ///   Flip the image upside down.
+    /// </summary>
+    /// <param name="image">The image to flip.</param>
+    private void FlipImage(SKBitmap image)
+    {
+        using var canvas = new SKCanvas(image);
+        
+        var matrix = SKMatrix.CreateScale(1, -1, image.Width / 2, image.Height / 2);
+
+        canvas.Concat(ref matrix);
+
+        canvas.DrawBitmap(image, 0, 0);
+
+        canvas.Flush();
+    }
+
+    /// <summary>
+    ///   Finalizes the conversion.
+    /// </summary>
+    /// <param name="data">The data to be converted</param>
+    /// <param name="width">The width of the image</param>
+    /// <param name="height">The height of the image</param>
+    /// <remarks>I can't understand these shenanigans.</remarks>
+    /// <returns>The final converted image.</returns>
+    private byte[] FinalizeConversion(byte[] data)
+    {
+        const int WIDTH = 64;
+        const int HEIGHT = 32 * 4;
+
+        byte[] convertedImg = new byte[WIDTH * HEIGHT];
+
+        int x = 0;
+        int y = 0;
+        bool firstline = true;
+        int counter = 1;
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            byte chr = data[i];
+            byte h = (byte)((chr >> 4) & 0x0F);
+            byte l = (byte)(chr & 0x0F);
+
+            int k1 = counter;
+            int k2 = counter + 2;
+            convertedImg[k1] = h;
+            convertedImg[k2] = l;
+
+            counter += 4;
+            x += 2;
+
+            if (x >= WIDTH)
+            {
+                y++;
+                x = 0;
+                if (firstline)
+                {
+                    firstline = false;
+                    counter -= WIDTH * 2 + 1;
+                }
+                else
+                {
+                    firstline = true;
+                    counter += 1;
+                }
+            }
+        }
+
+        return convertedImg;
+    }
+}
