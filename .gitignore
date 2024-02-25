@@ -1,2 +1,7 @@
 bin
 obj
+temp
+build
+*.old
+Material
+Tests
