@@ -10,7 +10,8 @@ using SysConvert = System.Convert;
 
 namespace OTD.CustomLED;
 
-public class CustomLED : IPositionedPipelineElement<IDeviceReport>
+[PluginName("LED Sandbox")]
+public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
 {
     private const int WIDTH = 64;
     private const int HEIGHT = 128;
