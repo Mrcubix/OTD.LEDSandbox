@@ -5,10 +5,10 @@ using OpenTabletDriver.Plugin.DependencyInjection;
 using OpenTabletDriver.Plugin.Devices;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
-using OTD.CustomLED.Converters;
+using OTD.LEDSandbox.Converters;
 using SysConvert = System.Convert;
 
-namespace OTD.CustomLED;
+namespace OTD.LEDSandbox;
 
 [PluginName("LED Sandbox")]
 public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>

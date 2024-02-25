@@ -26,7 +26,7 @@ cd build
 # create a zip file
 
 for f in *; do
-    zip -r OTD.CustomLED-$f.zip $f
+    zip -r OTD.LEDSandbox-$f.zip $f
 done
 
 cd ..

@@ -13,11 +13,11 @@ mkdir temp/bin
 
 # copy the files from the temp folder to the build folder
 
-mv temp/OTD.CustomLED.dll temp/bin/OTD.CustomLED.dll
+mv temp/OTD.LEDSandbox.dll temp/bin/OTD.LEDSandbox.dll
 
 # if config is Debug, copy the pdb file
 if [ $config = "Debug" ]; then
-  mv temp/OTD.CustomLED.pdb temp/bin/OTD.CustomLED.pdb
+  mv temp/OTD.LEDSandbox.pdb temp/bin/OTD.LEDSandbox.pdb
 fi
 
 mv temp/SkiaSharp.dll temp/bin/SkiaSharp.dll
