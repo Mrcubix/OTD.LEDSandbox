@@ -48,12 +48,29 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
                 FileInfo topDisplayImage = null!;
                 FileInfo bottomDisplayImage = null!;
 
-                // Read the files
+                // Read the top display image
                 if (!string.IsNullOrEmpty(TopDisplayImage))
-                    topDisplayImage = new FileInfo(TopDisplayImage);
+                {
+                    if (!File.Exists(TopDisplayImage))
+                    {
+                        Log.Write("CustomLED", "The top display image does not exist.", LogLevel.Warning);
+                        return;
+                    }
+                }
 
+                topDisplayImage = new FileInfo(TopDisplayImage);
+
+                // Read the bottom display image
                 if (!string.IsNullOrEmpty(BottomDisplayImage))
-                    bottomDisplayImage = new FileInfo(BottomDisplayImage);
+                {
+                    if (!File.Exists(BottomDisplayImage))
+                    {
+                        Log.Write("CustomLED", "The bottom display image does not exist.", LogLevel.Warning);
+                        return;
+                    }
+                }
+
+                bottomDisplayImage = new FileInfo(BottomDisplayImage);
 
                 if (topDisplayImage is not null)
                     InitializeCore(topDisplayImage, 0, FlipTopDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
@@ -94,8 +111,15 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
         // Convert the raw data to init data
         var initData = ConvertImageToInitData(data, displayChunk, width, height);
 
-        // Send the init data to the tablet
-        SendInitData(initData, hidStream);
+        try 
+        {
+            // Send the init data to the tablet
+            SendInitData(initData, hidStream);
+        }
+        catch (Exception e)
+        {
+            Log.Write("CustomLED", e.Message, LogLevel.Error);
+        }
 
         // Close the stream
         stream.Dispose();
