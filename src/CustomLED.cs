@@ -15,15 +15,12 @@ public class CustomLED : IPositionedPipelineElement<IDeviceReport>
     private const int WIDTH = 64;
     private const int HEIGHT = 128;
 
-    private static bool _libSkiaSharpLoaded = false;
+    // Only support Wacom Devices
+    public const int SUPPORTED_VENDORID = 1386;
+    // range from 184 to 188
+    public static readonly int[] SupportedProductID = Enumerable.Range(184, 188).ToArray();
 
     private UniversalConverter _universalConverter = null!;
-
-#pragma warning disable CS8618
-
-    public event Action<IDeviceReport> Emit;
-
-#pragma warning restore CS8618
 
     #region Initialization
 
@@ -40,21 +37,34 @@ public class CustomLED : IPositionedPipelineElement<IDeviceReport>
             if (device is not InputDevice inputDevice)
                 return;
 
-            FileInfo topDisplayImage = null!;
-            FileInfo bottomDisplayImage = null!;
+            var identifier = inputDevice.Identifier;
 
-            // Read the files
-            if (!string.IsNullOrEmpty(TopDisplayImage))
-                topDisplayImage = new FileInfo(TopDisplayImage);
+            // check the vendor id fisrt
+            if (identifier.VendorID == SUPPORTED_VENDORID && SupportedProductID.Contains(identifier.ProductID))
+            {
+                Log.Write("CustomLED", "The device is supported.", LogLevel.Info);
 
-            if (!string.IsNullOrEmpty(BottomDisplayImage))
-                bottomDisplayImage = new FileInfo(BottomDisplayImage);
+                FileInfo topDisplayImage = null!;
+                FileInfo bottomDisplayImage = null!;
 
-            if (topDisplayImage is not null)
-                InitializeCore(topDisplayImage, 0, FlipTopDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
+                // Read the files
+                if (!string.IsNullOrEmpty(TopDisplayImage))
+                    topDisplayImage = new FileInfo(TopDisplayImage);
 
-            if (bottomDisplayImage is not null)
-                InitializeCore(bottomDisplayImage, 4, FlipBottomDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
+                if (!string.IsNullOrEmpty(BottomDisplayImage))
+                    bottomDisplayImage = new FileInfo(BottomDisplayImage);
+
+                if (topDisplayImage is not null)
+                    InitializeCore(topDisplayImage, 0, FlipTopDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
+
+                if (bottomDisplayImage is not null)
+                    InitializeCore(bottomDisplayImage, 4, FlipBottomDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
+            }
+            else
+            {
+                Log.Write("CustomLED", "The device is not supported.", LogLevel.Warning);
+                Log.Write("CustomLED", "Supported devices are : Wacoms PTK-440, PTK-540WL, PTK-640, PTK-840, PTK-1240.", LogLevel.Warning);
+            }
         }
     }
 
@@ -63,7 +73,7 @@ public class CustomLED : IPositionedPipelineElement<IDeviceReport>
         // Read the image
         var stream = file.OpenRead();
 
-        byte[]? data = Array.Empty<byte>();
+        byte[]? data;
 
         try
         {
@@ -73,7 +83,7 @@ public class CustomLED : IPositionedPipelineElement<IDeviceReport>
         catch (TypeInitializationException)
         {
             Log.Write("CustomLED", "Probably failed to load libskiasharp.", LogLevel.Fatal);
-            Log.Write("CustomLED", "If you are running on an arm device, Install the additional dependencies found under assets.", LogLevel.Fatal);
+            Log.Write("CustomLED", "If you are running on an arm device, Install the arm version.", LogLevel.Fatal);
             return;
         }
 
@@ -89,6 +99,56 @@ public class CustomLED : IPositionedPipelineElement<IDeviceReport>
         // Close the stream
         stream.Dispose();
     }
+
+    #endregion
+
+    #region Events
+
+#pragma warning disable CS8618
+
+    public event Action<IDeviceReport> Emit;
+
+#pragma warning restore CS8618
+
+    #endregion
+
+    #region Properties
+
+#pragma warning disable CS8618
+
+    [TabletReference]
+    public TabletReference Tablet { get; set; }
+
+    [Resolved]
+    public IDriver Driver { get; set; }
+
+    #region Plugin Properties
+
+    [Property("Top Display Image"),
+     DefaultPropertyValue(""),
+     ToolTip("The image to display on the top display.")]
+    public string TopDisplayImage { get; set; }
+
+    [Property("Flip Top Display Image"),
+     DefaultPropertyValue(false),
+     ToolTip("Whether to flip the top display image.")]
+    public bool FlipTopDisplayImage { get; set; }
+
+    [Property("Bottom Display Image"),
+     DefaultPropertyValue(""),
+     ToolTip("The image to display on the bottom display.")]
+    public string BottomDisplayImage { get; set; }
+
+    [Property("Flip Bottom Display Image"),
+     DefaultPropertyValue(false),
+     ToolTip("Whether to flip the bottom display image.")]
+    public bool FlipBottomDisplayImage { get; set; }
+
+    public PipelinePosition Position => PipelinePosition.None;
+
+#pragma warning restore CS8618
+
+    #endregion
 
     #endregion
 
@@ -183,46 +243,6 @@ public class CustomLED : IPositionedPipelineElement<IDeviceReport>
             hidStream.SetFeature(row);
         }
     }
-
-    #endregion
-
-    #region Properties
-
-#pragma warning disable CS8618
-
-    [TabletReference]
-    public TabletReference Tablet { get; set; }
-
-    [Resolved]
-    public IDriver Driver { get; set; }
-
-    #region Plugin Properties
-
-    [Property("Top Display Image"),
-     DefaultPropertyValue(""),
-     ToolTip("The image to display on the top display.")]
-    public string TopDisplayImage { get; set; }
-
-    [Property("Flip Top Display Image"),
-     DefaultPropertyValue(false),
-     ToolTip("Whether to flip the top display image.")]
-    public bool FlipTopDisplayImage { get; set; }
-
-    [Property("Bottom Display Image"),
-     DefaultPropertyValue(""),
-     ToolTip("The image to display on the bottom display.")]
-    public string BottomDisplayImage { get; set; }
-
-    [Property("Flip Bottom Display Image"),
-     DefaultPropertyValue(false),
-     ToolTip("Whether to flip the bottom display image.")]
-    public bool FlipBottomDisplayImage { get; set; }
-
-    public PipelinePosition Position => PipelinePosition.None;
-
-#pragma warning restore CS8618
-
-    #endregion
 
     #endregion
 
