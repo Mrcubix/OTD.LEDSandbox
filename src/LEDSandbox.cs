@@ -45,37 +45,22 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
             {
                 Log.Write("CustomLED", "The device is supported.", LogLevel.Info);
 
-                FileInfo topDisplayImage = null!;
-                FileInfo bottomDisplayImage = null!;
-
                 // Read the top display image
-                if (!string.IsNullOrEmpty(TopDisplayImage))
+                if(!TryAccessFile(TopDisplayImage, out FileInfo topDisplayImage))
                 {
-                    if (!File.Exists(TopDisplayImage))
-                    {
-                        Log.Write("CustomLED", "The top display image does not exist.", LogLevel.Warning);
-                        return;
-                    }
+                    Log.Write("CustomLED", "The top display image does not exist or plugin does not have read access.", LogLevel.Warning);
                 }
-
-                topDisplayImage = new FileInfo(TopDisplayImage);
 
                 // Read the bottom display image
-                if (!string.IsNullOrEmpty(BottomDisplayImage))
+                if(!TryAccessFile(BottomDisplayImage, out FileInfo bottomDisplayImage))
                 {
-                    if (!File.Exists(BottomDisplayImage))
-                    {
-                        Log.Write("CustomLED", "The bottom display image does not exist.", LogLevel.Warning);
-                        return;
-                    }
+                    Log.Write("CustomLED", "The bottom display image does not exist or plugin does not have read access.", LogLevel.Warning);
                 }
 
-                bottomDisplayImage = new FileInfo(BottomDisplayImage);
-
-                if (topDisplayImage is not null)
+                if (topDisplayImage != null)
                     InitializeCore(topDisplayImage, 0, FlipTopDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
 
-                if (bottomDisplayImage is not null)
+                if (bottomDisplayImage != null)
                     InitializeCore(bottomDisplayImage, 4, FlipBottomDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
             }
             else
@@ -104,6 +89,12 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
             Log.Write("CustomLED", "If you are running on an arm device, Install the arm version.", LogLevel.Fatal);
             return;
         }
+        catch (Exception e)
+        {
+            Log.Write("CustomLED", "An unhandled exception occurred while converting the image.", LogLevel.Error);
+            Log.Write("CustomLED", e.Message, LogLevel.Error);
+            return;
+        }
 
         if (data is null)
             return;
@@ -118,6 +109,7 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
         }
         catch (Exception e)
         {
+            Log.Write("CustomLED", "An unhandled exception occurred while sending the init data.", LogLevel.Error);
             Log.Write("CustomLED", e.Message, LogLevel.Error);
         }
 
@@ -266,6 +258,27 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
               .ToArray();
 
             hidStream.SetFeature(row);
+        }
+    }
+
+    public bool TryAccessFile(string path, out FileInfo info)
+    {
+        info = null!;
+
+        if (string.IsNullOrEmpty(path))
+            return false;
+
+        if (!File.Exists(path))
+            return false;
+        
+        try
+        {
+            info = new FileInfo(path);
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
         }
     }
 
