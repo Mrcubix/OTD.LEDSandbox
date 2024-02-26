@@ -32,13 +32,13 @@ rm -rf $bin_runtime/win-x64
 rm -rf $bin_runtime/linux-x64
 rm -rf $bin_runtime/linux-musl-x64
 
-if [ ! -d "build/arm64" ]; then
-  mkdir build/arm64
+if [ ! -d "build/arm" ]; then
+  mkdir build/arm
 fi
 
 # copy the files from the temp folder to the build folder
 
-mv temp/bin/* build/arm64
+mv temp/bin/* build/arm
 
 # remove temp folder
 

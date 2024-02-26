@@ -9,7 +9,7 @@ rm -rf build/*
 # build for all platforms
 
 ./build-x86.sh $@ || exit 1
-./build-arm64.sh $@ || exit 1
+./build-arm.sh $@ || exit 1
 
 # remove temp folder
 
