@@ -29,7 +29,7 @@ fi
   for f in *; do
     (
       cd $f
-      zip -r ../OTD.LEDSandbox-$f.zip *
+      zip -r ../OTD.LEDSandbox-$f-0.5.x.zip *
     )
   done
 )
