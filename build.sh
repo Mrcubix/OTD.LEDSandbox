@@ -21,12 +21,15 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 
-cd build
+#subshell to build the zip files
+(
+  cd build
 
-# create a zip file
-
-for f in *; do
-    zip -r OTD.LEDSandbox-$f.zip $f
-done
-
-cd ..
+  # create zip files
+  for f in *; do
+    (
+      cd $f
+      zip -r ../OTD.LEDSandbox-$f-0.6.x.zip *
+    )
+  done
+)
