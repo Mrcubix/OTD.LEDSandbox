@@ -1,11 +1,14 @@
-namespace OTD.LEDSandbox.Converters;
+using System.IO;
 
-public abstract class Converter
+namespace OTD.LEDSandbox.Converters
 {
-    /// <summary>
-    ///   Converts the image bytes to a common format.
-    /// </summary>
-    /// <param name="data">The image's stream to convert.</param>
-    /// <returns>The converted image bytes.</returns>
-    public abstract byte[]? Convert(Stream data);
+    public abstract class Converter
+    {
+        /// <summary>
+        ///   Converts the image bytes to a common format.
+        /// </summary>
+        /// <param name="data">The image's stream to convert.</param>
+        /// <returns>The converted image bytes.</returns>
+        public abstract byte[]? Convert(Stream data);
+    }
 }
