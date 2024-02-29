@@ -2,13 +2,13 @@ using SkiaSharp;
 
 namespace OTD.LEDSandbox.Converters;
 
-public class UniversalConverter
+public class UniversalConverter : Converter
 {
     private const int WIDTH = 64;
     private const int HEIGHT = 32 * 4;
     
     /// <inheritdoc />
-    public byte[]? Convert(Stream stream, bool doFlip)
+    public override byte[]? Convert(Stream stream, bool doFlip)
     {
         // seek to the beginning of the stream
         stream.Seek(0, SeekOrigin.Begin);
@@ -119,59 +119,5 @@ public class UniversalConverter
         canvas.DrawBitmap(image, 0, 0);
 
         canvas.Flush();
-    }
-
-    /// <summary>
-    ///   Finalizes the conversion.
-    /// </summary>
-    /// <param name="data">The data to be converted</param>
-    /// <param name="width">The width of the image</param>
-    /// <param name="height">The height of the image</param>
-    /// <remarks>I can't understand these shenanigans.</remarks>
-    /// <returns>The final converted image.</returns>
-    private byte[] FinalizeConversion(byte[] data)
-    {
-        const int WIDTH = 64;
-        const int HEIGHT = 32 * 4;
-
-        byte[] convertedImg = new byte[WIDTH * HEIGHT];
-
-        int x = 0;
-        int y = 0;
-        bool firstline = true;
-        int counter = 1;
-
-        for (int i = 0; i < data.Length; i++)
-        {
-            byte chr = data[i];
-            byte h = (byte)((chr >> 4) & 0x0F);
-            byte l = (byte)(chr & 0x0F);
-
-            int k1 = counter;
-            int k2 = counter + 2;
-            convertedImg[k1] = h;
-            convertedImg[k2] = l;
-
-            counter += 4;
-            x += 2;
-
-            if (x >= WIDTH)
-            {
-                y++;
-                x = 0;
-                if (firstline)
-                {
-                    firstline = false;
-                    counter -= WIDTH * 2 + 1;
-                }
-                else
-                {
-                    firstline = true;
-                    counter += 1;
-                }
-            }
-        }
-
-        return convertedImg;
     }
 }
