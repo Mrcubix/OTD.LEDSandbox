@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <NoWarn>VSTHRD100; VSTHRD101; VSTHRD110; VSTHRD200</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>OTD.LEDSandbox</RootNamespace>
@@ -14,7 +15,9 @@
 
   <ItemGroup>
     <!--<ProjectReference Include="../.modules/OpenTabletDriver/OpenTabletDriver.Plugin/OpenTabletDriver.Plugin.csproj" />-->
-    <ProjectReference Include="../.modules/OpenTabletDriver/OpenTabletDriver/OpenTabletDriver.csproj" />
+    <ProjectReference Include="../.modules/OpenTabletDriver/OpenTabletDriver.Desktop/OpenTabletDriver.Desktop.csproj" />
+    <ProjectReference Include="../.modules/OpenTabletDriver.External/OpenTabletDriver.External.Common/OpenTabletDriver.External.Common.csproj" />
+    <ProjectReference Include="../OTD.LEDSandbox.Lib/OTD.LEDSandbox.Lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
