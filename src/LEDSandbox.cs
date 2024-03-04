@@ -351,6 +351,9 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
 
     public void SendBrightnessCommand()
     {
+        if (_reportStream is null)
+            return;
+
         // Proceed to build the report
         var report = new byte[9];
 
