@@ -174,7 +174,7 @@ namespace OTD.LEDSandbox
                  "0: Off, \n" +
                  "1: Dim, \n" +
                  "2: Intermediate, \n" +
-                 "3: Brightest, \n")]
+                 "3: Brightest.")]
         public int Brightness { get; set; }
 
         #endregion
