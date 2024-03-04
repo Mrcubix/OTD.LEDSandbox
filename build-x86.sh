@@ -14,10 +14,14 @@ mkdir temp/bin
 # copy the files from the temp folder to the build folder
 
 mv temp/OTD.LEDSandbox.dll temp/bin/OTD.LEDSandbox.dll
+mv temp/OTD.LEDSandbox.Lib.dll temp/bin/OTD.LEDSandbox.Lib.dll
+mv temp/OpenTabletDriver.External.Common.dll temp/bin/OpenTabletDriver.External.Common.dll
 
 # if config is Debug, copy the pdb file
 if [ $config = "Debug" ]; then
   mv temp/OTD.LEDSandbox.pdb temp/bin/OTD.LEDSandbox.pdb
+  mv temp/OTD.LEDSandbox.Lib.pdb temp/bin/OTD.LEDSandbox.Lib.pdb
+  mv temp/OpenTabletDriver.External.Common.pdb temp/bin/OpenTabletDriver.External.Common.pdb
 fi
 
 mv temp/SkiaSharp.dll temp/bin/SkiaSharp.dll

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OTD.LEDSandbox", "src\OTD.LEDSandbox.csproj", "{803AC6E1-E81D-4485-9CAC-97586DCBC49B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OTD.LEDSandbox.Lib", "OTD.LEDSandbox.Lib\OTD.LEDSandbox.Lib.csproj", "{1CBEC2EA-C482-4DF8-9540-4C578EE58D71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{803AC6E1-E81D-4485-9CAC-97586DCBC49B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{803AC6E1-E81D-4485-9CAC-97586DCBC49B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{803AC6E1-E81D-4485-9CAC-97586DCBC49B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CBEC2EA-C482-4DF8-9540-4C578EE58D71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CBEC2EA-C482-4DF8-9540-4C578EE58D71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CBEC2EA-C482-4DF8-9540-4C578EE58D71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CBEC2EA-C482-4DF8-9540-4C578EE58D71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
