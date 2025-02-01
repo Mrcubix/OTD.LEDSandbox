@@ -10,18 +10,18 @@ namespace OTD.LEDSandbox.Converters
         private const int HEIGHT = 32 * 4;
 
         /// <inheritdoc />
-        public override byte[]? Convert(Stream stream, bool doFlip)
+        public override byte[]? Convert(Stream stream, bool doFlipVertically, bool doFlipHorizontally)
         {
             // seek to the beginning of the stream
             stream.Seek(0, SeekOrigin.Begin);
 
-            var res = ConvertCore(stream, doFlip);
+            var res = ConvertCore(stream, doFlipVertically, doFlipHorizontally);
 
             return res;
         }
 
         // Use skiasharp to convert any image, which may not only be bitmap, to grayscale
-        private byte[]? ConvertCore(Stream stream, bool doFlip)
+        private byte[]? ConvertCore(Stream stream, bool doFlipVertically, bool doFlipHorizontally)
         {
             using SKImage image = SKImage.FromEncodedData(stream);
 
@@ -41,8 +41,11 @@ namespace OTD.LEDSandbox.Converters
             SKBitmap result = ConvertToGrayscale(image);
 
             // flip the image if needed
-            if (doFlip)
-                FlipImage(result);
+            if (doFlipVertically)
+                FlipImageVertically(result);
+
+            if (doFlipHorizontally)
+                FlipImageHorizontally(result);
 
             // Convert the 8-bit grayscale image to a 4-bit grayscale image
             byte[] data = ConvertTo4BitGrayscale(result);
@@ -117,14 +120,31 @@ namespace OTD.LEDSandbox.Converters
         }
 
         /// <summary>
-        ///   Flip the image upside down.
+        ///   Flip the image vertically.
         /// </summary>
         /// <param name="image">The image to flip.</param>
-        private void FlipImage(SKBitmap image)
+        private void FlipImageVertically(SKBitmap image)
         {
             using var canvas = new SKCanvas(image);
 
             var matrix = SKMatrix.CreateScale(1, -1, image.Width / 2, image.Height / 2);
+
+            canvas.Concat(ref matrix);
+
+            canvas.DrawBitmap(image, 0, 0);
+
+            canvas.Flush();
+        }
+
+        /// <summary>
+        ///   Flip the image horizontally.
+        /// </summary>
+        /// <param name="image">The image to flip.</param>
+        private void FlipImageHorizontally(SKBitmap image)
+        {
+            using var canvas = new SKCanvas(image);
+
+            var matrix = SKMatrix.CreateScale(-1, 1, image.Width / 2, image.Height / 2);
 
             canvas.Concat(ref matrix);
 

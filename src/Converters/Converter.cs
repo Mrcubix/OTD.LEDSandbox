@@ -9,7 +9,7 @@ namespace OTD.LEDSandbox.Converters
         /// </summary>
         /// <param name="data">The image's stream to convert.</param>
         /// <returns>The converted image bytes.</returns>
-        public abstract byte[]? Convert(Stream data, bool doFlip);
+        public abstract byte[]? Convert(Stream data, bool doFlipVertically, bool doFlipHorizontally);
 
          /// <summary>
         ///   Finalizes the conversion.
