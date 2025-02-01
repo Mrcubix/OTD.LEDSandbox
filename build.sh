@@ -32,4 +32,9 @@ fi
       zip -r ../OTD.LEDSandbox-$f-0.5.x.zip *
     )
   done
+
+  echo "Computing hashes"
+
+  sha256sum OTD.LEDSandbox-arm-0.5.x.zip >> hashes.txt
+  sha256sum OTD.LEDSandbox-x86-0.5.x.zip >> hashes.txt
 )
