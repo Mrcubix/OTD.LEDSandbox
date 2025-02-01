@@ -1,12 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HidSharp;
 using OpenTabletDriver;
-using OpenTabletDriver.Desktop.RPC;
 using OpenTabletDriver.Devices;
+using OpenTabletDriver.External.Common.RPC;
 using OpenTabletDriver.Plugin;
 using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Tablet;
@@ -25,6 +27,9 @@ namespace OTD.LEDSandbox
 
         // Only support Wacom Devices, with product id ranging from 184 to 188 (PTK-440, PTK-540WL, PTK-640, PTK-840, PTK-1240)
         public const int SUPPORTED_VENDORID = 1386;
+
+        private static readonly string _pluginLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string _nativeLibrariesPath = Path.Combine(_pluginLocation, "runtimes", FixedRuntimeInformation.RuntimeIdentifier, "native");
         public static readonly int[] SupportedProductID = Enumerable.Range(184, 188).ToArray();
 
         private readonly UniversalConverter _universalConverter;
@@ -35,7 +40,7 @@ namespace OTD.LEDSandbox
 
         #region Fields
 
-        private RpcHost<LEDSandboxHost> _rpcHost;
+        private RpcServer<LEDSandboxHost> _rpcHost;
 
         private HidStream _reportStream;
 
@@ -49,9 +54,9 @@ namespace OTD.LEDSandbox
         {
             _universalConverter = new();
             _tokenSource = new();
+            _ledSandboxHost = new();
 
-            _rpcHost = new RpcHost<LEDSandboxHost>("OTD.LEDSandbox");
-            _ledSandboxHost = _rpcHost.Instance;
+            _rpcHost = new RpcServer<LEDSandboxHost>("OTD.LEDSandbox", _ledSandboxHost);
         }
 
 #pragma warning restore CS8618
@@ -108,6 +113,16 @@ namespace OTD.LEDSandbox
                 {
                     Log.Write("CustomLED", "The device is supported.", LogLevel.Info);
 
+                    bool pluginLocationExist = _pluginLocation != null && Directory.Exists(_pluginLocation);
+
+                    if (pluginLocationExist == false)
+                    {
+                        Log.Write("CustomLED", "Unable to get the plugin location.", LogLevel.Error);
+                        return;
+                    }
+                    else
+                        MoveNativeLibraries();
+
                     // Read the top display image
                     if (!TryAccessFile(TopDisplayImage, out FileInfo topDisplayImage))
                     {
@@ -139,7 +154,7 @@ namespace OTD.LEDSandbox
             _rpcHost.ConnectionStateChanged += OnConnectionStateChanged;
             LEDSandboxHost.ActiveRingLEDChanged += OnActiveRingLEDChanged;
 
-            await _rpcHost.Main();
+            await _rpcHost.MainAsync();
         }
 
         #endregion
@@ -197,10 +212,11 @@ namespace OTD.LEDSandbox
                 // Convert the image to raw data
                 data = Convert(stream, doFlip);
             }
-            catch (TypeInitializationException)
+            catch (TypeInitializationException e)
             {
                 Log.Write("CustomLED", "Probably failed to load libskiasharp.", LogLevel.Fatal);
                 Log.Write("CustomLED", "If you are running on an arm device, Install the arm version.", LogLevel.Fatal);
+                Log.Write("CustomLED", e.ToString(), LogLevel.Fatal);
                 return;
             }
             catch (Exception e)
@@ -210,7 +226,10 @@ namespace OTD.LEDSandbox
                 return;
             }
 
-            if (data is null)
+            // Close the stream
+            stream.Dispose();
+
+            if (data == null)
                 return;
 
             // Convert the raw data to init data
@@ -226,9 +245,6 @@ namespace OTD.LEDSandbox
                 Log.Write("CustomLED", "An unhandled exception occurred while sending the init data.", LogLevel.Error);
                 Log.Write("CustomLED", e.Message, LogLevel.Error);
             }
-
-            // Close the stream
-            stream.Dispose();
         }
 
         #endregion
@@ -390,6 +406,39 @@ namespace OTD.LEDSandbox
                 2 => new byte[] { 0x0a, 0x28, 0x1a },
                 _ => new byte[] { 0x20, 0x7f, 0x1f }
             };
+        }
+
+        #endregion
+
+        #region Static Methods
+        
+        private static void MoveNativeLibraries()
+        {
+            // On Linux only, Copy the native libraries to the plugin location
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                var nativeLibrariesDirectory = new DirectoryInfo(_nativeLibrariesPath);
+                if (nativeLibrariesDirectory.Exists)
+                {
+                    foreach (var file in nativeLibrariesDirectory.GetFiles())
+                    {
+                        var fileInfo = new FileInfo(file.FullName);
+                        var destinationPath = Path.Combine(_pluginLocation, fileInfo.Name);
+                        if (File.Exists(destinationPath) == false)
+                        {
+                            try
+                            {
+                                File.Copy(fileInfo.FullName, destinationPath);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Write("CustomLED", "An unhandled exception occurred while copying the native libraries.", LogLevel.Error);
+                                Log.Write("CustomLED", e.Message, LogLevel.Error);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         #endregion
