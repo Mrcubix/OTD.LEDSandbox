@@ -124,10 +124,10 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
             }
 
             if (topDisplayImage != null)
-                BuildAndSendImage(topDisplayImage, 0, FlipTopDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
+                BuildAndSendImage(topDisplayImage, 0, FlipTopDisplayImage, FlipTopDisplayImageHorizontally, WIDTH, HEIGHT, inputDevice.ReportStream);
 
             if (bottomDisplayImage != null)
-                BuildAndSendImage(bottomDisplayImage, 4, FlipBottomDisplayImage, WIDTH, HEIGHT, inputDevice.ReportStream);
+                BuildAndSendImage(bottomDisplayImage, 4, FlipBottomDisplayImage, FlipBottomDisplayImageHorizontally, WIDTH, HEIGHT, inputDevice.ReportStream);
         }
         else
         {
@@ -171,20 +171,30 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
      ToolTip("The image to display on the top display.")]
     public string TopDisplayImage { get; set; }
 
-    [Property("Flip Top Display Image"),
+    [BooleanProperty("Flip Top Display Image Vertically", ""),
      DefaultPropertyValue(false),
-     ToolTip("Whether to flip the top display image.")]
+     ToolTip("Whether to flip the top display image vertically.")]
     public bool FlipTopDisplayImage { get; set; }
+
+    [BooleanProperty("Flip Top Display Image Horizontally", ""),
+     DefaultPropertyValue(false),
+     ToolTip("Whether to flip the top display image horizontally.")]
+    public bool FlipTopDisplayImageHorizontally { get; set; }
 
     [Property("Bottom Display Image"),
      DefaultPropertyValue(""),
      ToolTip("The image to display on the bottom display.")]
     public string BottomDisplayImage { get; set; }
 
-    [Property("Flip Bottom Display Image"),
+    [BooleanProperty("Flip Bottom Display Image Vertically", ""),
      DefaultPropertyValue(false),
-     ToolTip("Whether to flip the bottom display image.")]
+     ToolTip("Whether to flip the bottom display image vertically.")]
     public bool FlipBottomDisplayImage { get; set; }
+
+    [BooleanProperty("Flip Bottom Display Image Horizontally", ""),
+     DefaultPropertyValue(false),
+     ToolTip("Whether to flip the bottom display image horizontally.")]
+    public bool FlipBottomDisplayImageHorizontally { get; set; }
 
     [Property("Brightness"),
      DefaultPropertyValue(2),
@@ -205,7 +215,7 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
 
     #region Image Processing
 
-    private void BuildAndSendImage(FileInfo file, int displayChunk, bool doFlip, int width, int height, IDeviceEndpointStream hidStream)
+    private void BuildAndSendImage(FileInfo file, int displayChunk, bool doFlipVertically, bool doFlipHorizontally, int width, int height, IDeviceEndpointStream hidStream)
     {
         // Read the image
         var stream = file.OpenRead();
@@ -215,7 +225,7 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
         try
         {
             // Convert the image to raw data
-            data = Convert(stream, doFlip);
+            data = Convert(stream, doFlipVertically, doFlipHorizontally);
         }
         catch (TypeInitializationException e)
         {
@@ -261,10 +271,10 @@ public class LEDSandbox : IPositionedPipelineElement<IDeviceReport>
     /// </summary>
     /// <param name="imageBytes">The image bytes to convert.</param>
     /// <returns>The converted image bytes.</returns>
-    public byte[]? Convert(Stream stream, bool doFlip)
+    public byte[]? Convert(Stream stream, bool doFlipVertically, bool doFlipHorizontally)
     {
         //return _bitmapConverter.Convert(stream);
-        return _universalConverter.Convert(stream, doFlip);
+        return _universalConverter.Convert(stream, doFlipVertically, doFlipHorizontally);
     }
 
     public void FlipData(byte[] data)

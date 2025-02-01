@@ -7,7 +7,7 @@ public abstract class Converter
     /// </summary>
     /// <param name="data">The image's stream to convert.</param>
     /// <returns>The converted image bytes.</returns>
-    public abstract byte[]? Convert(Stream stream, bool doFlip);
+    public abstract byte[]? Convert(Stream stream, bool doFlipVertically, bool doFlipHorizontally);
 
     public virtual byte[] FinalizeConversion(byte[] data)
     {
