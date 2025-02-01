@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!--<ProjectReference Include="../.modules/OpenTabletDriver/OpenTabletDriver.Plugin/OpenTabletDriver.Plugin.csproj" />-->
-    <ProjectReference Include="../.modules/OpenTabletDriver/OpenTabletDriver.Desktop/OpenTabletDriver.Desktop.csproj" />
+    <PackageReference Include="OpenTabletDriver" Version="0.6.4.0" Publish="False"/>
     <ProjectReference Include="../.modules/OpenTabletDriver.External/OpenTabletDriver.External.Common/OpenTabletDriver.External.Common.csproj" />
     <ProjectReference Include="../OTD.LEDSandbox.Lib/OTD.LEDSandbox.Lib.csproj" />
   </ItemGroup>
