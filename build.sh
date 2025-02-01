@@ -21,6 +21,9 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 
+# Re-create hashes.txt
+#> "./build/hashes.txt"
+
 #subshell to build the zip files
 (
   cd build
@@ -32,4 +35,9 @@ fi
       zip -r ../OTD.LEDSandbox-$f-0.6.x.zip *
     )
   done
+
+  echo "Computing hashes"
+
+  sha256sum OTD.LEDSandbox-arm-0.6.x.zip >> hashes.txt
+  sha256sum OTD.LEDSandbox-x86-0.6.x.zip >> hashes.txt
 )
